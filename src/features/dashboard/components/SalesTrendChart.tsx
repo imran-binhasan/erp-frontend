@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { SalesTrendPoint } from '@/shared/types/api.types';
 import { formatCurrency } from '@/shared/utils/formatCurrency';
 
@@ -7,12 +8,9 @@ interface SalesTrendChartProps {
   data: SalesTrendPoint[];
 }
 
-export function SalesTrendChart({ data }: SalesTrendChartProps) {
-  const maxRevenue = useMemo(
-    () => Math.max(...data.map((d) => d.revenue), 1),
-    [data],
-  );
+const COLORS = ['#6366f1', '#818cf8'];
 
+export function SalesTrendChart({ data }: SalesTrendChartProps) {
   const weekTotal = useMemo(
     () => data.reduce((sum, d) => sum + d.revenue, 0),
     [data],
@@ -20,6 +18,15 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
 
   const weekCount = useMemo(
     () => data.reduce((sum, d) => sum + d.count, 0),
+    [data],
+  );
+
+  const chartData = useMemo(
+    () =>
+      data.map((point) => ({
+        ...point,
+        label: format(parseISO(point.date), 'EEE'),
+      })),
     [data],
   );
 
@@ -42,24 +49,34 @@ export function SalesTrendChart({ data }: SalesTrendChartProps) {
         </div>
       </div>
 
-      <div className="flex h-44 flex-1 items-end gap-2 sm:gap-3">
-        {data.map((point) => {
-          const height = point.revenue > 0 ? Math.max((point.revenue / maxRevenue) * 100, 8) : 4;
-          const label = format(parseISO(point.date), 'EEE');
-
-          return (
-            <div key={point.date} className="group flex flex-1 flex-col items-center gap-2">
-              <div className="relative flex w-full flex-1 items-end">
-                <div
-                  className="w-full rounded-t-lg bg-brand-500/90 transition-all group-hover:bg-brand-500 dark:bg-brand-500/80"
-                  style={{ height: `${height}%` }}
-                  title={`${label}: ${formatCurrency(point.revenue)} (${point.count} sale${point.count !== 1 ? 's' : ''})`}
-                />
-              </div>
-              <span className="text-theme-xs font-medium text-gray-500 dark:text-gray-400">{label}</span>
-            </div>
-          );
-        })}
+      <div className="h-64 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 12, fill: '#9ca3af' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 12, fill: '#9ca3af' }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(v) => `৳${v}`}
+            />
+            <Tooltip
+              cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
+              formatter={(value) => [formatCurrency(value as number), 'Revenue']}
+              labelStyle={{ color: '#374151' }}
+              contentStyle={{ borderRadius: 12, border: '1px solid #e5e7eb' }}
+            />
+            <Bar dataKey="revenue" radius={[6, 6, 0, 0]} barSize={32}>
+              {chartData.map((entry, index) => (
+                <Cell key={entry.date} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
