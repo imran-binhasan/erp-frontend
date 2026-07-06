@@ -3,7 +3,7 @@
 Inventory & Sales Management UI built with **React 19**, **Vite 8**, **TypeScript 6**, **Tailwind CSS v4**, **TanStack Query 5**.
 
 > **Live URL:** `https://erp-taskf.vercel.app`
-> **Backend API:** `https://erp-taskb.railway.app/api/v1`
+> **Backend API:** `https://erp-taskb.up.railway.app/api/v1`
 
 ---
 
