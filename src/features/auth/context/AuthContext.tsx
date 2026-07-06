@@ -1,4 +1,4 @@
-import { useState, useCallback, type ReactNode } from 'react';
+import { useState, useCallback, type ReactNode, useEffect } from 'react';
 import type { User } from '@/shared/types/api.types';
 import { AuthContext } from './authContext';
 
@@ -15,6 +15,17 @@ function parseStoredUser(): User | null {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(parseStoredUser);
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
+
+  // Watch for 401 from axios interceptor and clear auth state.
+  // Actual navigation is handled by <AuthErrorHandler /> inside the router.
+  useEffect(() => {
+    const handler = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('auth:expired', handler);
+    return () => window.removeEventListener('auth:expired', handler);
+  }, []);
 
   const login = useCallback((newToken: string, newUser: User) => {
     localStorage.setItem('token', newToken);

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { onAuthExpired, onAuthForbidden } from './authErrorHandler';
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api/v1',
@@ -17,12 +18,10 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      onAuthExpired();
     }
     if (error.response?.status === 403) {
-      window.location.href = '/dashboard';
+      onAuthForbidden();
     }
     return Promise.reject(error);
   },
